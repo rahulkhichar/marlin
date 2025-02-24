@@ -7,10 +7,12 @@ import {
   Body,
   Param,
   UseInterceptors,
+  UseGuards,
 } from '@nestjs/common';
 import { LoggingInterceptor } from 'src/utils';
 import { UserService } from './user.service';
 import { CreateUserDto, UpdateUserDto } from './dtos';
+import { RateLimiterGuard } from '../rate-limiting/rate-limiter.guard';
 
 @UseInterceptors(LoggingInterceptor)
 @Controller('v1/users')
@@ -18,6 +20,7 @@ export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Get()
+  @UseGuards(RateLimiterGuard)
   findAll() {
     return this.userService.findAll();
   }
