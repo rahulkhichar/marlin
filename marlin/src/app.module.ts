@@ -6,6 +6,8 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './module';
 import { LoggerService } from './utils';
 import { UserModule } from './module/user/user.module';
+import { PatymentModule } from './module/payment/payment.module';
+import { Payment } from './module/payment/entitys';
 
 @Module({
   imports: [
@@ -21,10 +23,11 @@ import { UserModule } from './module/user/user.module';
       username: 'root',
       password: 'newpassword',
       database: 'marlin',
-      entities: [User],
+      entities: [User, Payment],
       synchronize: true,
     }),
     UserModule,
+    PatymentModule,
   ],
   controllers: [AppController],
   providers: [AppService, LoggerService],
