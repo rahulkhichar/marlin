@@ -2,20 +2,46 @@ import {
   Injectable,
   NotFoundException,
   ConflictException,
+  Inject,
 } from '@nestjs/common';
 import { LoggerService } from 'src/utils';
 import { UserRepository } from './user.repository';
-import { CreateUserDto, UpdateUserDto } from './dtos';
+import { CreateUserDto, ListUserDto, UpdateUserDto } from './dtos';
+import { CACHE_MANAGER, Cache } from '@nestjs/cache-manager';
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly userRepository: UserRepository,
     private readonly logger: LoggerService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
-  async findAll() {
-    return this.userRepository.findAll();
+  async findAll(listUserDto: ListUserDto) {
+    const cacheKey = `users-list-${listUserDto.page || 1}-${listUserDto.limit || 10}`;
+    const cachedUsers = await this.cacheManager.get(cacheKey);
+
+    if (cachedUsers) {
+      console.log('Returning cached users');
+      return cachedUsers;
+    }
+
+    const [users, total] = await this.userRepository.findAll(listUserDto);
+    const result = {
+      users,
+      total,
+    };
+
+    await this.cacheManager.set(
+      cacheKey,
+      result,
+      5000, // 5 seconds, not 60 as mentioned in comment
+    );
+
+    return {
+      users,
+      total,
+    };
   }
 
   async findById(id: string) {

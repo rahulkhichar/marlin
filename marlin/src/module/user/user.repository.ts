@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { FindOneOptions, Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from './user.entity';
+import { ListUserDto } from './dtos';
 
 @Injectable()
 export class UserRepository {
@@ -10,8 +11,28 @@ export class UserRepository {
     private readonly userRepo: Repository<User>,
   ) {}
 
-  async findAll(): Promise<User[]> {
-    return this.userRepo.find();
+  async findAll(listDto?: ListUserDto): Promise<[User[], number]> {
+    const { limit, offset, snapshotTimestamp } = paginationDto;
+
+    // If no snapshot timestamp is provided, use the current timestamp
+    const timestamp = snapshotTimestamp || new Date().toISOString();
+
+    const [users, total] = await this.userRepository.findAndCount({
+      where: { createdAt: LessThanOrEqual(timestamp) },
+      order: { createdAt: 'DESC' },
+      take: limit,
+      skip: offset,
+    });
+
+    return {
+      data: users,
+      meta: {
+        total,
+        limit,
+        offset,
+        snapshotTimestamp: timestamp, // Ensure all pages use the same snapshot
+      },
+    };
   }
 
   async findById(id: string): Promise<User | null> {

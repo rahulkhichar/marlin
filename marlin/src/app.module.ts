@@ -8,6 +8,8 @@ import { LoggerService } from './utils';
 import { UserModule } from './module/user/user.module';
 import { PatymentModule } from './module/payment/payment.module';
 import { Payment } from './module/payment/entitys';
+import { CacheModule } from '@nestjs/cache-manager';
+import { redisStore } from 'cache-manager-redis-store';
 
 @Module({
   imports: [

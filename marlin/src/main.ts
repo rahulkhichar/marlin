@@ -7,11 +7,11 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // Enable validation globally
-  app.useGlobalPipes(new ValidationPipe());
 
   const globalPrefix = 'marlin/api';
   app.setGlobalPrefix(globalPrefix);
   app.useGlobalInterceptors(new ThrottlingInterceptor());
+  app.useGlobalPipes(new ValidationPipe({ transform: true }));
   const port = process.env.PORT || 3001;
   await app.listen(port);
   Logger.log(

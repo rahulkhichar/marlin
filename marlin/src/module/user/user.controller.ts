@@ -8,10 +8,13 @@ import {
   Param,
   UseInterceptors,
   UseGuards,
+  Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { LoggingInterceptor } from 'src/utils';
 import { UserService } from './user.service';
-import { CreateUserDto, UpdateUserDto } from './dtos';
+import { CreateUserDto, ListUserDto, UpdateUserDto } from './dtos';
 import { RateLimiterGuard } from '../rate-limiting/rate-limiter.guard';
 
 @UseInterceptors(LoggingInterceptor)
@@ -21,8 +24,20 @@ export class UserController {
 
   @Get()
   @UseGuards(RateLimiterGuard)
-  findAll() {
-    return this.userService.findAll();
+  async findAll(@Query() listUserDto: ListUserDto) {
+    const paginatedResult: any = await this.userService.findAll(listUserDto);
+
+    return {
+      data: paginatedResult.users,
+      meta: {
+        total: paginatedResult.total,
+        page: listUserDto.page || 1,
+        limit: listUserDto.limit || 10,
+        totalPages: Math.ceil(
+          paginatedResult.total / (listUserDto.limit || 10),
+        ),
+      },
+    };
   }
 
   @Get(':id')
